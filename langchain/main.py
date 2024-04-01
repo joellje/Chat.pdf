@@ -6,6 +6,8 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
 from langchain.chains.question_answering import load_qa_chain
+from langchain_community.document_loaders import AsyncChromiumLoader
+from langchain_community.document_transformers import BeautifulSoupTransformer
 from langchain_openai import OpenAI
 from langchain.chains import create_history_aware_retriever
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -47,7 +49,30 @@ def getChatHistory(chat_id):
 
     return res[1:]
 
-def initChain(file_path):
+def initURLChain(url_path):
+    try:
+        loader = AsyncChromiumLoader([url_path])
+        html = loader.load()
+        bs_transformer = BeautifulSoupTransformer()
+        webpage = bs_transformer.transform_documents(html, tags_to_extract=["span"])
+
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=512,
+            chunk_overlap=32,
+            length_function=len,
+        )
+
+        texts = text_splitter.split_text(webpage)
+        embeddings = OpenAIEmbeddings()
+        docsearch = FAISS.from_texts(texts, embeddings)
+        chain = load_qa_chain(OpenAI(), chain_type="stuff")
+
+        return docsearch, chain
+
+    except Exception as e:
+        raise Exception(f"Error initializing chain: {e}")
+
+def initPDFChain(file_path):
     try:
         pdf_reader = PdfReader(file_path)
         text = ''
@@ -169,6 +194,7 @@ def upload():
 
         file_path = getFilePath(chat_id)
         file.save(file_path)
+        docsearch, chain = initPDFChain(file_path)
 
         query = "Summarise the document in a response with the following format. 1. Greet the user and acknowledge they have uploaded a document. 2. Provide a summary of the document in point form. 3. Offer to answer any questions. Separate these points with the new line separator \n"
         output_text = get_output(file_path, query, chat_id)
