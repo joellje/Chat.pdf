@@ -178,9 +178,10 @@ def upload():
 @app.route('/query', methods=['POST'])
 def query():
     try:
-        data = request.get_json()
         if not data:
             return make_response(jsonify({"error": "No data provided"}), 400)
+        data = request.get_json()
+        
         if not data['query']:
             return make_response(jsonify({"error": "No query provided"}), 400)
         
@@ -216,8 +217,14 @@ def get_chats():
 @app.route('/chatHistory', methods=['GET'])
 def get_chat_histories():
     try:
+        if not data:
+            return make_response(jsonify({"error": "No data provided"}), 400)
         data = request.get_json()
+
+        if not data['chat_id']:
+            return make_response(jsonify({"error": "No chat_id provided"}), 400)
         chat_id = data['chat_id']
+        
         chat_history = getChatHistory(chat_id)
 
         return make_response(jsonify({"chat_history": chat_history}), 200)
