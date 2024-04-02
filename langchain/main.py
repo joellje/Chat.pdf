@@ -170,7 +170,7 @@ def upload():
         file_path = getFilePath(chat_id)
         file.save(file_path)
 
-        return make_response(jsonify({"message": "File uploaded"}), 200)
+        return make_response(jsonify({"message": "File uploaded", "chatId": chat_id, "chatName": file.filename}), 200)
     
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
@@ -178,9 +178,9 @@ def upload():
 @app.route('/query', methods=['POST'])
 def query():
     try:
+        data = request.get_json()
         if not data:
             return make_response(jsonify({"error": "No data provided"}), 400)
-        data = request.get_json()
         
         if not data['query']:
             return make_response(jsonify({"error": "No query provided"}), 400)
@@ -214,17 +214,11 @@ def get_chats():
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
 
+# Get the value of a field named 'chat_id' from the query parameters
 @app.route('/chatHistory', methods=['GET'])
 def get_chat_histories():
     try:
-        if not data:
-            return make_response(jsonify({"error": "No data provided"}), 400)
-        data = request.get_json()
-
-        if not data['chat_id']:
-            return make_response(jsonify({"error": "No chat_id provided"}), 400)
-        chat_id = data['chat_id']
-        
+        chat_id = request.args.get('chat_id')
         chat_history = getChatHistory(chat_id)
 
         return make_response(jsonify({"chat_history": chat_history}), 200)

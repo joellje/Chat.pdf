@@ -5,26 +5,28 @@ import TextInput from "./Components/TextInput";
 
 import React, { useEffect, useState } from "react";
 import { queryPDF, getChatHistory } from "./Network/Requests";
+import ErrorToast from "./Components/ErrorToast";
 
 function ChatPage() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [chats, setChats] = useState([
-    {
-      chatName: "Anakin",
-      chatId: 123,
-    },
+    // {
+    //   chatName: "Anakin",
+    //   chatId: 123,
+    // },
   ]);
 
   const [userInput, setUserInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const getChats = async () => {
       const response = await fetch("http://localhost:8080/chats");
       if (response.status !== 200) {
-        console.error("Failed to fetch chats");
+        showError("Failed to fetch chats");
         return;
       }
       const c = await response.json();
@@ -40,7 +42,7 @@ function ChatPage() {
       setIsLoading(true);
       const response = await getChatHistory(selectedChat.chatId);
       if (response.status !== 200) {
-        console.error("Failed to fetch messages");
+        showError("Failed to fetch chat history");
         setIsLoading(false);
         return;
       }
@@ -63,7 +65,8 @@ function ChatPage() {
     setIsSending(true);
     let response = await queryPDF(selectedChat.chatId, userInput);
     if (response.status !== 200) {
-      console.error("Failed to send query");
+      let data = await response.json()
+      showError("Failed to send message: " +  data.error);
       setIsSending(false);
       return;
     }
@@ -77,6 +80,13 @@ function ChatPage() {
 
     setIsSending(false);
     // Clear input
+  };
+
+  const showError = (message) => {
+    setError(message);
+    setTimeout(() => {
+      setError(null);
+    }, 3000);
   };
 
   return (
@@ -105,6 +115,7 @@ function ChatPage() {
           selectedChat={selectedChat}
         />
       </div>
+      {error && <ErrorToast errorDescription={error} />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getChatHistory } from "../Network/Requests";
+import ErrorToast from "./ErrorToast";
 
 export default function ChatComponent({
   isLoading,
@@ -7,27 +8,6 @@ export default function ChatComponent({
   messages,
   selectedChat,
 }) {
-  // const [messages, setMessages] = useState([
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  //   { isUserSent: false, message: "It's over Anakin, I have the high ground." },
-  //   { isUserSent: true, message: "You underestimate my power!" },
-  // ]);
-
   const messageRef = useRef(null);
 
   // Update scroll position whenever messages change
