@@ -35,6 +35,18 @@ def getFilePath(chat_id):
 def getFileName(chat_id):
     return chat_id_to_filename_map.get(chat_id, "")
 
+def getChatHistory(chat_id):
+    chat_history = chat_histories.get(chat_id, [])
+    res = []
+
+    for item in chat_history:
+        if isinstance(item, HumanMessage):
+            res.append({"isUserSent": True, "message": item.content})
+        else:
+            res.append({"isUserSent": False, "message": item})
+
+    return res
+
 def initChain(file_path):
     try:
         pdf_reader = PdfReader(file_path)
@@ -193,7 +205,22 @@ def query():
 @app.route('/chats', methods=['GET'])
 def get_chats():
     try:
-        return make_response(jsonify({"chats": chat_id_to_filename_map}), 200)
+        response = []
+        for chat_id, filename in chat_id_to_filename_map.items():
+            response.append({"chatId": chat_id, "chatName": filename})
+        return make_response(jsonify({"chats": response}), 200)
+    
+    except Exception as e:
+        return make_response(jsonify({"error": str(e)}), 500)
+
+@app.route('/chatHistory', methods=['GET'])
+def get_chat_histories():
+    try:
+        data = request.get_json()
+        chat_id = data['chat_id']
+        chat_history = getChatHistory(chat_id)
+
+        return make_response(jsonify({"chat_history": chat_history}), 200)
     
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
