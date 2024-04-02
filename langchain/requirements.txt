@@ -8,3 +8,4 @@ tiktoken
 python-dotenv
 flask
 flask_cors
+langchainhub
