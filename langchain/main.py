@@ -24,12 +24,16 @@ OPENAI_API_KEY= os.getenv("OPENAI_API_KEY")
 app = Flask(__name__)
 CORS(app)
 
-chat_histories = collections.defaultdict(list)
+chat_histories = {}
+chat_id_to_filename_map = {}
 
 def getFilePath(chat_id):
-        filename = f"Chat_{chat_id}.pdf"
-        file_path = os.path.join('uploads', filename)
-        return file_path
+    filename = f"Chat_{chat_id}.pdf"
+    file_path = os.path.join('uploads', filename)
+    return file_path
+
+def getFileName(chat_id):
+    return chat_id_to_filename_map.get(chat_id, "")
 
 def initChain(file_path):
     try:
@@ -139,11 +143,14 @@ def upload():
             return make_response(jsonify({"error": "No chat_id provided"}), 400)
         
         chat_id = request.form["chat_id"]
+        if chat_id not in chat_histories:
+            chat_histories[chat_id] = []
 
         if 'file' not in request.files:
             return make_response(jsonify({"error": "No file part"}), 400)
         
         file = request.files['file']
+        chat_id_to_filename_map[chat_id] = file.filename
 
         if file.filename == '':
             return make_response(jsonify({"error": "No selected file"}), 400)
@@ -179,6 +186,14 @@ def query():
     
     except KeyError:
         return make_response(jsonify({"error": "No query provided"}), 400)
+    
+    except Exception as e:
+        return make_response(jsonify({"error": str(e)}), 500)
+    
+@app.route('/chats', methods=['GET'])
+def get_chats():
+    try:
+        return make_response(jsonify({"chats": chat_id_to_filename_map}), 200)
     
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
