@@ -9,9 +9,8 @@ export default function LoadableButton(props) {
           <span className="loading loading-spinner"></span>
         </button>
       ) : (
-        <button className="btn btn-square btn-primary" onClick={props.onClick}>
+        <button className={`btn btn-square ${props.disabled ? "btn-disabled" : "btn-primary" }`} onClick={props.onClick}>
           <img src={paperplane} alt="send" />
-
         </button>
       )}
     </>
