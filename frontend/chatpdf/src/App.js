@@ -62,11 +62,15 @@ function ChatPage() {
     if (isSending) return;
     setMessages([...messages, { isUserSent: true, message: userInput }]);
     setUserInput("");
-    setIsSending(true);
-    let response = await queryPDF(selectedChat.chatId, userInput);
+    makeQuery(selectedChat.chatId, userInput);
+  };
+
+  const makeQuery = async (chatId, query) => {
+    setIsSending((_) => true);
+    let response = await queryPDF(chatId, query);
     if (response.status !== 200) {
-      let data = await response.json()
-      showError("Failed to send message: " +  data.error);
+      let data = await response.json();
+      showError("Failed to send message: " + data.error);
       setIsSending(false);
       return;
     }
@@ -75,11 +79,8 @@ function ChatPage() {
     setMessages((prevState) => [
       ...prevState,
       { isUserSent: false, message: data.output },
-      // { isUserSent: false, message: "test" },
     ]);
-
-    setIsSending(false);
-    // Clear input
+    setIsSending((_) => false);
   };
 
   const showError = (message) => {
@@ -90,7 +91,7 @@ function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen">
+    <div className="flex flex-col justify-between lg:flex-row h-screen">
       <Drawer
         chats={chats}
         setChats={setChats}

@@ -45,7 +45,7 @@ def getChatHistory(chat_id):
         else:
             res.append({"isUserSent": False, "message": item})
 
-    return res
+    return res[1:]
 
 def initChain(file_path):
     try:
@@ -170,7 +170,10 @@ def upload():
         file_path = getFilePath(chat_id)
         file.save(file_path)
 
-        return make_response(jsonify({"message": "File uploaded", "chatId": chat_id, "chatName": file.filename}), 200)
+        query = "Summarise the document in a response with the following format. 1. Greet the user and acknowledge they have uploaded a document. 2. Provide a summary of the document in point form. 3. Offer to answer any questions. Separate these points with the new line separator \n"
+        output_text = get_output(file_path, query, chat_id)
+
+        return make_response(jsonify({"chatId": chat_id, "chatName": file.filename}), 200)
     
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
