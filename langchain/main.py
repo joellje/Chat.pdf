@@ -194,7 +194,6 @@ def upload():
 
         file_path = getFilePath(chat_id)
         file.save(file_path)
-        docsearch, chain = initPDFChain(file_path)
 
         query = "Summarise the document in a response with the following format. 1. Greet the user and acknowledge they have uploaded a document. 2. Provide a summary of the document in point form. 3. Offer to answer any questions. Separate these points with the new line separator \n"
         output_text = get_output(file_path, query, chat_id)
