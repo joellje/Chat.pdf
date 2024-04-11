@@ -6,7 +6,8 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
 import bs4
-from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.document_loaders import AsyncChromiumLoader
+from langchain_community.document_transformers import BeautifulSoupTransformer
 from langchain_openai import OpenAI
 from langchain.chains import create_history_aware_retriever
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -121,17 +122,17 @@ def get_pdf_output(file_path, query, chat_id):
 
 def get_url_output(url, query, chat_id):
     try:
-        bs4_strainer = bs4.SoupStrainer(class_=("post-title", "post-header", "post-content"))
-        loader = WebBaseLoader(
-            web_paths=(url,),
-            bs_kwargs={"parse_only": bs4_strainer},
-        )
-        webpage = loader.load()
+        bs_transformer = BeautifulSoupTransformer()
+        loader = AsyncChromiumLoader([url])
+        html = loader.load()
+        webpage = bs_transformer.transform_documents(
+            html, tags_to_extract=["p", "li", "div", "a", "section", "ul"])
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200
         )
         docs = text_splitter.split_documents(webpage)
+
         embeddings = OpenAIEmbeddings()
         docsearch = FAISS.from_documents(docs, embeddings)
 

@@ -10,3 +10,4 @@ flask
 flask_cors
 langchainhub
 beautifulsoup4
+pytest-playwright
