@@ -24,7 +24,7 @@ export const uploadPDF = async (file) => {
 export const queryPDF = async (chatId, query) => {
     // Post with body
     console.log(chatId, query);
-    const response = await fetch(`${API_URL}/query-pdf`, {
+    const response = await fetch(`${API_URL}/query`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
