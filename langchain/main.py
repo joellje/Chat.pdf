@@ -132,10 +132,8 @@ def get_url_output(url, query, chat_id):
             chunk_overlap=200
         )
         docs = text_splitter.split_documents(webpage)
-
         embeddings = OpenAIEmbeddings()
         docsearch = FAISS.from_documents(docs, embeddings)
-
         # Retrieve and generate using the relevant snippets of the pdf.
         retriever = docsearch.as_retriever()
         llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
@@ -184,6 +182,9 @@ def get_url_output(url, query, chat_id):
         chat_history.extend([HumanMessage(content=query), res])
     
         return res
+    
+    except IndexError:
+        raise Exception("Error: The URL entered is invalid")
 
     except Exception as e:
         raise Exception(f"Error getting output: {e}")
@@ -236,6 +237,7 @@ def url():
         return make_response(jsonify({"chatId": chat_id, "chatName": url_link}), 200)
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
+
 
 @app.route('/query', methods=['POST'])
 def query_pdf():
