@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FileDrop } from "react-file-drop";
-import { uploadPDF, queryPDF } from "../Network/Requests";
+import { uploadPDF, queryPDF, uploadUrl } from "../Network/Requests";
+import TextInput from "./TextInput";
 
 export default function Drawer({
   chats,
@@ -19,6 +20,7 @@ export default function Drawer({
   const [isHovering, setIsHovering] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [url, setUrl] = useState("");
 
   const handleDrop = async (files) => {
     setIsUploading(true);
@@ -40,13 +42,13 @@ export default function Drawer({
 
   const uploadFileButton = (isDrawer) => (
     <FileDrop
-      className={`btn btn-outline btn-primary bg-base btn-lg ${
+      className={`btn btn-outline btn-primary bg-base  ${
         isHovering && "bg-success/40"
       } ${
         isDraggingFile
           ? "border-solid shadow-md shadow-primary"
           : "border-dashed"
-      } ${isDrawer ? "hidden lg:flex" : "flex lg:hidden"}`}
+      } ${isDrawer ? "hidden btn-lg lg:flex" : "flex lg:hidden btn-md"}`}
       onFrameDragEnter={(event) =>
         // console.log("onFrameDragEnter", event)
         // setIsHovering(true)
@@ -85,18 +87,52 @@ export default function Drawer({
     </FileDrop>
   );
 
+  const uploadUrlButton = (isDrawer) => (
+    TextInput({
+      className: `w-full p-0 ${isDrawer ? "hidden lg:flex" : "flex lg:hidden"}`,
+      value: url,
+      onChange: setUrl,
+      onEnterPressed: async () => {
+        setIsUploading(true);
+        const response = await uploadUrl(url);
+        if (response.status != 200) {
+          console.error("Upload failed");
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+        const data = await response.json();
+        setChats([
+          ...chats,
+          { chatName: data.chatName, chatId: data.chatId },
+        ]);
+        setSelectedChat({
+          chatName: data.chatName,
+          chatId: data.chatId,
+        });
+      },
+      isLoading: isUploading,
+      placeholder: "Enter URL to start chat",
+    })
+  );
+
   return (
     <div className="z-20">
       <div className="drawer lg:drawer-open bg-base-300">
         <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content flex items-center justify-center gap-8 p-8 lg:p-0">
-          {uploadFileButton(false)}
-          <label
+          <div>
+            {uploadFileButton(false)}
+            {uploadUrlButton(false)}
+            <label
             htmlFor="my-drawer-2"
-            className="btn drawer-button btn-lg text-sm lg:hidden"
+            className="btn drawer-button btn-md text-sm lg:hidden w-full mt-4"
           >
             View Chat History
           </label>
+          </div>
+          
+
         </div>
         <div className="drawer-side z-30">
           <label
@@ -105,7 +141,8 @@ export default function Drawer({
             className="drawer-overlay"
           ></label>
           <ul className="menu p-4 w-80 min-h-full text-base-content bg-base-200">
-            <li>
+            {/* <li className="gap-2"> */}
+            {/* <div className="flex flex-col gap-2"> */}
               <input
                 type="file"
                 id="file"
@@ -115,15 +152,16 @@ export default function Drawer({
                 }}
               />
               {uploadFileButton(true)}
-            </li>
+              {uploadUrlButton(true)}
+            {/* </li> */}
             <li className="divider"></li>
             <li className="menu-title text-base-content text-xl">Chats</li>
             {chats &&
               chats.map((chat, index) => (
-                <li key={index}>
+                <li key={index} className="">
                   <a
                     key={chat.chatId}
-                    className={`${
+                    className={`w-72 line-clamp-1 ${
                       selectedChat &&
                       selectedChat.chatId == chat.chatId &&
                       "active"

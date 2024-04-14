@@ -34,6 +34,19 @@ export const queryPDF = async (chatId, query) => {
     return response;
 };
 
+export const uploadUrl = async (url) => {
+    const formData = new FormData();
+    formData.append("url", url);
+    formData.append("chat_id", createUUID());
+
+    const response = await fetch(`${API_URL}/url`, {
+        method: "POST",
+        body: formData,
+    });
+
+    return response;
+};
+
 export const getChats = async () => {
     const response = await fetch(`${API_URL}/chats`);
     return response;

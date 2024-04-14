@@ -233,7 +233,7 @@ def url():
         url_link = request.form["url"]
         chat_id_to_url_map[chat_id] = url_link
 
-        return make_response(jsonify({"chatId": chat_id, "url": url_link}), 200)
+        return make_response(jsonify({"chatId": chat_id, "chatName": url_link}), 200)
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
 

@@ -7,14 +7,15 @@ export default function TextInput({
   onChange,
   onEnterPressed,
   value,
-  isLoading
+  isLoading,
+  placeholder
 }) {
   return (
     <div className={`p-8 pt-4 w-full flex gap-4 ${className}`}>
       <input
         disabled={disabled}
         type="text"
-        placeholder="Type here"
+        placeholder={placeholder || "Type here"}
         value={value}
         className="input input-bordered input-primary w-full"
         onChange={(e) => onChange(e.target.value)}
