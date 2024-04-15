@@ -1,4 +1,4 @@
-# Check if the ServerDirectory directory exists
+# Check if the uploads directory exists
 cd langchain
 
 if [ -d "uploads" ]; then

@@ -102,6 +102,7 @@ export default function Drawer({
         }
         setIsUploading(false);
         const data = await response.json();
+        setUrl("");
         setChats([
           ...chats,
           { chatName: data.chatName, chatId: data.chatId },

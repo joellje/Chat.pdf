@@ -188,6 +188,73 @@ def get_url_output(url, query, chat_id):
 
     except Exception as e:
         raise Exception(f"Error getting output: {e}")
+    
+def get_name(url, query):
+    try:
+        bs_transformer = BeautifulSoupTransformer()
+        loader = AsyncChromiumLoader([url])
+        html = loader.load()
+        webpage = bs_transformer.transform_documents(
+            html, tags_to_extract=["p", "li", "div", "a", "section", "ul"])
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200
+        )
+        docs = text_splitter.split_documents(webpage)
+        embeddings = OpenAIEmbeddings()
+        docsearch = FAISS.from_documents(docs, embeddings)
+        # Retrieve and generate using the relevant snippets of the pdf.
+        retriever = docsearch.as_retriever()
+        llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+
+        contextualize_q_system_prompt = """Given a chat history and the latest user question \
+        which might reference context in the chat history, formulate a standalone question \
+        which can be understood without the chat history. Do NOT answer the question, \
+        just reformulate it if needed and otherwise return it as is."""
+
+        contextualize_q_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", contextualize_q_system_prompt),
+                MessagesPlaceholder("chat_history"),
+                ("human", "{input}"),
+            ]
+        )
+
+        history_aware_retriever = create_history_aware_retriever(
+            llm, retriever, contextualize_q_prompt
+        )
+
+        qa_system_prompt = """You are an assistant for question-answering tasks. \
+        Use the following pieces of retrieved context to answer the question. \
+        If you don't know the answer, just say that you don't know. \
+        Use three sentences maximum and keep the answer concise.\
+
+        {context}"""
+
+        qa_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", qa_system_prompt),
+                MessagesPlaceholder("chat_history"),
+                ("human", "{input}"),
+            ]
+        )
+
+        question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
+
+        rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+
+        chat_history = []
+        
+        reply = rag_chain.invoke({"input": query, "chat_history": chat_history})
+        res = reply["answer"]
+
+        return res
+    
+    except IndexError:
+        raise Exception("Error: The URL entered is invalid")
+
+    except Exception as e:
+        raise Exception(f"Error getting output: {e}")
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -234,7 +301,9 @@ def url():
         url_link = request.form["url"]
         chat_id_to_url_map[chat_id] = url_link
 
-        return make_response(jsonify({"chatId": chat_id, "chatName": url_link}), 200)
+        chat_name = get_name(url_link, "Summarize the title of the text into 5 words that can be used to identify it")
+
+        return make_response(jsonify({"chatId": chat_id, "chatName": chat_name}), 200)
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
 
