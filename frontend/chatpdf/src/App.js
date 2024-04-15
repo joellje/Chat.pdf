@@ -100,7 +100,7 @@ function ChatPage() {
       />
       <div className="w-full flex flex-col-reverse">
         <TextInput
-          className="sticky bottom-0 z-10 bg-base"
+          className="sticky bottom-0 z-10 bg-base p-8"
           disabled={selectedChat === null}
           isLoading={isSending}
           value={userInput}

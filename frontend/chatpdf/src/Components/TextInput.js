@@ -11,7 +11,7 @@ export default function TextInput({
   placeholder
 }) {
   return (
-    <div className={`p-8 pt-4 w-full flex gap-4 ${className}`}>
+    <div className={`pt-4 w-full flex gap-4 ${className}`}>
       <input
         disabled={disabled}
         type="text"
